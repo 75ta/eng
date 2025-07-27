@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мои Карточки</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app-container">
+        <h1>Карточки для изучения</h1>
+        <div id="card-container">
+            <div class="card">
+                <div class="card-front">
+                    <p id="word"></p>
+                </div>
+                <div class="card-back">
+                    <p id="translation"></p>
+                </div>
+            </div>
+        </div>
+        <div id="controls">
+            <button id="show-answer-btn">Показать ответ</button>
+            <div id="answer-buttons" class="hidden">
+                <button id="incorrect-btn">Не помню</button>
+                <button id="correct-btn">Помню!</button>
+            </div>
+        </div>
+        <p id="message-area">Загрузка слов...</p>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
