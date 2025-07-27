@@ -5,15 +5,40 @@ const translationEl = document.getElementById('translation');
 const cardContainer = document.querySelector('.card');
 const showAnswerBtn = document.getElementById('show-answer-btn');
 const answerButtons = document.getElementById('answer-buttons');
-const correctBtn = document.getElementById('correct-btn');
-const incorrectBtn = document.getElementById('incorrect-btn');
 const messageArea = document.getElementById('message-area');
+
+// Новые ID для кнопок
+const againBtn = document.getElementById('again-btn');
+const hardBtn = document.getElementById('hard-btn');
+const easyBtn = document.getElementById('easy-btn');
+
 
 let words = [];
 let currentWord = null;
 
 function shuffleArray(array) { for (let i = array.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[array[i], array[j]] = [array[j], array[i]]; } }
-function calculateSM2(word, quality) { let { repetition, interval, efactor } = word; if (quality < 3) { repetition = 0; interval = 1; } else { repetition += 1; if (repetition === 1) { interval = 1; } else if (repetition === 2) { interval = 6; } else { interval = Math.round(interval * efactor); } } efactor = efactor + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02)); if (efactor < 1.3) efactor = 1.3; const newDueDate = new Date(); newDueDate.setDate(newDueDate.getDate() + interval); return { ...word, repetition, interval, efactor, dueDate: newDueDate.toISOString().split('T')[0] }; }
+
+function calculateSM2(word, quality) {
+    let { repetition, interval, efactor } = word;
+    if (quality < 3) {
+        repetition = 0;
+        interval = 1;
+    } else {
+        repetition += 1;
+        if (repetition === 1) {
+            interval = 1;
+        } else if (repetition === 2) {
+            interval = 6;
+        } else {
+            interval = Math.round(interval * efactor);
+        }
+    }
+    efactor = efactor + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
+    if (efactor < 1.3) efactor = 1.3;
+    const newDueDate = new Date();
+    newDueDate.setDate(newDueDate.getDate() + interval);
+    return { ...word, repetition, interval, efactor, dueDate: newDueDate.toISOString().split('T')[0] };
+}
 
 async function fetchWords() {
     messageArea.textContent = 'Loading cards...';
@@ -58,6 +83,10 @@ async function updateWord(word, quality) {
 }
 
 showAnswerBtn.addEventListener('click', () => { cardContainer.classList.add('is-flipped'); showAnswerBtn.classList.add('hidden'); answerButtons.classList.remove('hidden'); });
-correctBtn.addEventListener('click', () => updateWord(currentWord, 5));
-incorrectBtn.addEventListener('click', () => updateWord(currentWord, 1));
+
+// Новые обработчики для трех кнопок
+againBtn.addEventListener('click', () => updateWord(currentWord, 1)); // Quality 1: Неправильно, сброс
+hardBtn.addEventListener('click', () => updateWord(currentWord, 3));  // Quality 3: Правильно, но сложно. Интервал вырастет незначительно.
+easyBtn.addEventListener('click', () => updateWord(currentWord, 5));   // Quality 5: Правильно и легко. Интервал вырастет сильно.
+
 fetchWords();
