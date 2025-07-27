@@ -1,14 +1,14 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Мои Карточки</title>
+    <title>My Flashcards</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="app-container">
-        <h1>Карточки для изучения</h1>
+        <h1>Flashcards for Review</h1>
         <div id="card-container">
             <div class="card">
                 <div class="card-front">
@@ -20,13 +20,14 @@
             </div>
         </div>
         <div id="controls">
-            <button id="show-answer-btn">Показать ответ</button>
+            <button id="show-answer-btn">Show Answer</button>
             <div id="answer-buttons" class="hidden">
-                <button id="incorrect-btn">Не помню</button>
-                <button id="correct-btn">Помню!</button>
+                <button id="incorrect-btn">I Don't Remember</button>
+                <button id="correct-btn">I Remember!</button>
             </div>
         </div>
-        <p id="message-area">Загрузка слов...</p>
+        <p id="message-area">Loading cards...</p>
+        <a href="stats.html" class="nav-link">Go to Statistics →</a>
     </div>
     <script src="script.js"></script>
 </body>
