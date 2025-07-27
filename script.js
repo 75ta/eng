@@ -1,5 +1,5 @@
 
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxIwj1w8ktd4FFrAFxnrKx4GbPG5FO3oBS4RrNFSfkSLT9xXKPP2kwrJpVkLjk8rQ/exec'; 
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxJ61Jm0sx78sdh4t0dQQEhcu1gxClFtOT1J591xm2dfT1maRp9YO6tyqdfFqS5nEqi/exec'; 
 
 
 // Элементы на странице
@@ -72,13 +72,15 @@ async function fetchWords() {
 
 function displayNextCard() {
     if (words.length === 0) {
-        fetchWords(); // Попробовать загрузить снова, если вдруг появились новые
+        fetchWords();
         return;
     }
     
-    currentWord = words.shift(); // Берем первое слово из списка
-    wordEl.textContent = currentWord.english;
-    translationEl.textContent = currentWord.russian;
+    currentWord = words.shift();
+    // Теперь на передней стороне карточки будет русское слово
+    wordEl.textContent = currentWord.russian;
+    // А на обратной, после нажатия кнопки, — английский перевод
+    translationEl.textContent = currentWord.english;
     
     cardContainer.classList.remove('is-flipped');
     showAnswerBtn.classList.remove('hidden');

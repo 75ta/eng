@@ -4,10 +4,13 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    min-height: 100vh; /* Используем min-height, чтобы страница могла расти */
     margin: 0;
+    padding: 20px 0; /* Добавляем отступы на случай маленьких экранов */
     color: #333;
+    box-sizing: border-box;
 }
+
 #app-container {
     text-align: center;
     background: white;
@@ -17,22 +20,27 @@ body {
     width: 90%;
     max-width: 500px;
 }
+
 #card-container {
     width: 100%;
-    height: 250px;
+    /* ИЗМЕНЕНИЕ: Убираем фиксированную высоту, задаем минимальную */
+    min-height: 250px; 
     perspective: 1000px;
     margin-bottom: 20px;
+    display: flex; /* Добавлено для лучшего выравнивания */
 }
+
 .card {
     width: 100%;
-    height: 100%;
     position: relative;
     transform-style: preserve-3d;
     transition: transform 0.6s;
 }
+
 .card.is-flipped {
     transform: rotateY(180deg);
 }
+
 .card-front, .card-back {
     position: absolute;
     width: 100%;
@@ -41,19 +49,24 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 2.5em;
+    /* ИЗМЕНЕНИЕ: Уменьшаем шрифт и добавляем межстрочный интервал */
+    font-size: 1.7em;
+    line-height: 1.4;
     border: 1px solid #ddd;
     border-radius: 10px;
     padding: 20px;
     box-sizing: border-box;
 }
+
 .card-front {
     background-color: #ffffff;
 }
+
 .card-back {
     background-color: #e9f5ff;
     transform: rotateY(180deg);
 }
+
 #controls button {
     padding: 15px 30px;
     font-size: 1.1em;
@@ -63,27 +76,41 @@ body {
     margin: 5px;
     transition: background-color 0.2s;
 }
+
 #show-answer-btn {
     background-color: #007bff;
     color: white;
 }
+
 #incorrect-btn {
     background-color: #dc3545;
     color: white;
 }
+
 #correct-btn {
     background-color: #28a745;
     color: white;
 }
+
 #controls button:hover {
     opacity: 0.9;
 }
+
 .hidden {
     display: none;
 }
+
 #message-area {
     margin-top: 20px;
     font-size: 1.1em;
     color: #666;
     height: 25px;
-}
+}```
+
+### **Что делать дальше?**
+
+1.  Сохраните изменения в файле `style.css`.
+2.  Если вы запускаете проект локально, просто обновите страницу в браузере.
+3.  Если вы уже опубликовали проект на GitHub Pages, загрузите туда обновленный файл `style.css`, чтобы изменения применились на вашем сайте.
+
+После этого длинные предложения будут аккуратно размещаться внутри карточки, которая будет подстраиваться под их размер.
