@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div id="app-container" class="stats-container">
+        <div class="main-header">
+            <h1>Dashboard</h1>
+        </div>
+        <div id="dashboard-grid">
+            <div class="dashboard-card" id="streak-card">
+                <h3>Current Streak</h3>
+                <div class="streak-display">
+                    🔥 <span id="streak-count">0</span> days
+                </div>
+            </div>
+            <div class="dashboard-card" id="forecast-card">
+                <h3>Forecast</h3>
+                <canvas id="forecastChart"></canvas>
+            </div>
+            <div class="dashboard-card" id="progress-card">
+                <h3>Progress</h3>
+                <canvas id="progressChart"></canvas>
+            </div>
+        </div>
+        <a href="index.html" class="nav-link">← Back to Flashcards</a>
+    </div>
+    <script src="dashboard.js"></script>
+</body>
+</html>

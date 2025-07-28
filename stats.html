@@ -3,15 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Statistics & Export</title>
+    <title>Listening & Shadowing</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="app-container" class="stats-container">
-        <div class="main-header">
-            <h1>Word Statistics</h1>
-            <button id="toggle-ui-btn">Toggle UI</button>
-        </div>
+        <div class="main-header"><h1>Listening & Shadowing</h1><button id="toggle-ui-btn">Toggle UI</button></div>
         <div class="controls-container">
             <div class="filter-group">
                 <p>Filter by Progress:</p>
@@ -20,19 +17,14 @@
                 <button class="filter-btn" data-filter="learning">Learning</button>
                 <button class="filter-btn" data-filter="known">Known</button>
             </div>
+             <div class="filter-group" id="tags-filter-container"><p>Filter by Tags:</p></div>
             <div class="generation-controls">
-                <div class="control-item">
-                    <label for="english-cols">English Columns:</label>
-                    <input type="number" id="english-cols" value="1" min="1" max="5">
-                </div>
-                <div class="control-item">
-                    <label><input type="checkbox" id="show-russian"> Show Russian Translation</label>
-                </div>
+                <div class="control-item"><label for="english-cols">English Columns:</label><input type="number" id="english-cols" value="1" min="1" max="5"></div>
+                <div class="control-item"><label><input type="checkbox" id="show-russian"> Show Russian Translation</label></div>
+                <div class="control-item"><label><input type="checkbox" id="show-history"> Show Answer History</label></div>
             </div>
         </div>
-        <div id="table-container">
-            <p>Loading data...</p>
-        </div>
+        <div id="table-container"><p>Loading data...</p></div>
         <a href="index.html" class="nav-link">← Back to Flashcards</a>
     </div>
     <script src="stats.js"></script>

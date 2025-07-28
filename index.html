@@ -1,25 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Flashcards</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
 </head>
-
 <body>
     <div id="app-container">
-        <h1>Flashcards for Review</h1>
-        <div id="card-container">
-            <div class="card">
-                <div class="card-front">
-                    <p id="word"></p>
+        <div id="top-bar">
+            <div id="streak-counter">🔥 0 days</div>
+            <div class="settings-panel">
+                <div class="setting-item">
+                    <label for="new-card-limit">New / Day:</label>
+                    <input type="number" id="new-card-limit" value="20" min="0" max="100">
                 </div>
-                <div class="card-back">
-                    <p id="translation"></p>
+                <label class="switch"><input type="checkbox" id="typing-mode-toggle"><span></span></label> Type-in Answer
+                <label class="switch"><input type="checkbox" id="audio-autoplay-toggle"><span></span></label> Autoplay Audio
+            </div>
+        </div>
+        <div id="card-wrapper">
+            <div id="card-container">
+                <div class="card">
+                    <div class="card-front"><p id="word"></p></div>
+                    <div class="card-back">
+                        <p id="translation"></p>
+                        <button id="audio-btn" class="card-icon-btn">🔊</button>
+                    </div>
                 </div>
             </div>
+             <div id="session-stats"></div>
+             <input type="text" id="answer-input" placeholder="Type the translation..." class="hidden">
         </div>
         <div id="controls">
             <button id="show-answer-btn">Show Answer</button>
@@ -28,11 +40,18 @@
                 <button id="hard-btn">Hard</button>
                 <button id="easy-btn">Easy</button>
             </div>
+             <button id="check-answer-btn" class="hidden">Check</button>
         </div>
-        <p id="message-area">Loading cards...</p>
-        <a href="stats.html" class="nav-link">Go to Statistics →</a>
+        <div id="bottom-bar">
+            <button id="undo-btn" class="hidden">Undo</button>
+            <div class="card-actions">
+                <button id="suspend-btn" class="card-icon-btn">❄️ Suspend</button>
+            </div>
+        </div>
+        <a href="stats.html" class="nav-link">Listening & Shadowing</a>
+        <a href="dashboard.html" class="nav-link">Dashboard</a>
+        <a href="phrases.html" class="nav-link">Phrases</a>
     </div>
     <script src="script.js"></script>
 </body>
-
 </html>
