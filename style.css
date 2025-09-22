@@ -20,6 +20,7 @@ input:checked + span:before { transform: translateX(18px); }
 .card { width: 100%; position: relative; transform-style: preserve-3d; transition: transform 0.6s; }
 .card.is-flipped { transform: rotateY(180deg); }
 .card-front, .card-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 1.7em; line-height: 1.4; border: 1px solid var(--border-color); border-radius: 10px; padding: 20px; box-sizing: border-box; }
+#feedback-container { margin: 10px auto; padding: 10px; border-radius: 8px; max-width: 80%; font-weight: 500; }
 .card-back { transform: rotateY(180deg); }
 .card-icon-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; opacity: 0.5; transition: opacity 0.2s; }
 .card-icon-btn:hover { opacity: 1; }

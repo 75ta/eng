@@ -1,4 +1,4 @@
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby2lP9WGeEnXf-QhLPa8Ggu6FKytoMQ8Fh-IbeSXSHsvGB7YrnDQNkVSg8kqbYiWVYs/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby31RLVPoMVB77G80-4OWvJf16S6au0WSRFXWrnbLmvc55Dxpk6kpVpgKwSx1RP7k1a/exec';
 
 const wordEl = document.getElementById('word');
 const translationEl = document.getElementById('translation');
@@ -18,6 +18,8 @@ const typingModeToggle = document.getElementById('typing-mode-toggle');
 const answerInput = document.getElementById('answer-input');
 const checkAnswerBtn = document.getElementById('check-answer-btn');
 const newCardLimitInput = document.getElementById('new-card-limit');
+const feedbackContainer = document.getElementById('feedback-container');
+const suggestedAnswerContainer = document.getElementById('suggested-answer-container');
 
 let words = [], lapsePile = [], lastAction = null, currentWord = null, isTypingMode = false, isAudioAutoplay = false;
 
@@ -85,7 +87,15 @@ function calculateStreak(data) {
 }
 
 function displayNextCard() {
+    console.log("displayNextCard: Called.");
+    if (!cardContainer) {
+        console.error("displayNextCard: cardContainer is null. Cannot proceed.");
+        return; // Предотвращаем дальнейшие ошибки
+    }
     undoBtn.classList.add('hidden');
+    feedbackContainer.classList.add('hidden');
+    // suggestedAnswerContainer.classList.add('hidden'); // Удалено, так как больше не используется
+    // suggestedAnswerContainer.innerHTML = ''; // Удалено, так как больше не используется
     if (words.length === 0 && lapsePile.length > 0) {
         words = [...lapsePile];
         lapsePile = [];
@@ -108,20 +118,41 @@ function displayNextCard() {
     updateUIMode();
 }
 
-async function sendData(payload) { try { await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) }); } catch (e) { console.error("Failed to send data:", e); } }
+async function sendData(payload) {
+    const options = {
+        method: 'POST',
+        body: JSON.stringify(payload)
+    };
+    if (payload.action === 'updateWord' || payload.action === 'updateStatus' || payload.action === 'updatePhraseRating') {
+        options.mode = 'no-cors';
+    }
 
-function logAnswer() {
-    if (!currentWord || !isTypingMode || answerInput.value.trim() === '') return;
+    try {
+        const response = await fetch(SCRIPT_URL, options);
+        if (payload.action === 'checkAnswer' || payload.action === 'logDetailedAnswer') {
+            return await response.json();
+        }
+        return { status: "success" };
+    } catch (e) {
+        console.error("Failed to send data:", e);
+        if (payload.action === 'checkAnswer') {
+            return { isCorrect: false, feedback: "Ошибка сети. Не удалось проверить ответ." };
+        }
+        return { status: "error", message: e.message };
+    }
+}
+
+function logAnswer(userAnswer) {
+    if (!currentWord || !isTypingMode || userAnswer.trim() === '') return;
     sendData({
         action: 'logAnswer',
         wordId: currentWord.id,
-        userAnswer: answerInput.value.trim()
+        userAnswer: userAnswer.trim()
     });
 }
 
 function processAnswer(quality, ratingText) {
     lastAction = { wordBefore: { ...currentWord }, quality };
-    logAnswer();
     if (quality < 3) {
         lapsePile.push(currentWord);
         document.getElementById('lapse-count').textContent = lapsePile.length;
@@ -140,25 +171,103 @@ function updateUIMode() {
     cardContainer.classList.remove('hidden');
     sessionStatsEl.classList.remove('hidden');
     const isFlipped = cardContainer.classList.contains('is-flipped');
+    
+    // Логика для режима ввода
     if (isTypingMode) {
-        showAnswerBtn.classList.add('hidden'); answerButtons.classList.add('hidden');
-        answerInput.classList.remove('hidden'); checkAnswerBtn.classList.remove('hidden');
-        if (isFlipped) { answerInput.classList.add('hidden'); checkAnswerBtn.classList.add('hidden'); answerButtons.classList.remove('hidden'); }
+        showAnswerBtn.classList.add('hidden');
+        answerInput.classList.remove('hidden');
+        
+        if (isFlipped) {
+            // Если карточка перевернута (после проверки), показываем кнопки оценки
+            answerInput.classList.add('hidden');
+            checkAnswerBtn.classList.add('hidden');
+            answerButtons.classList.remove('hidden');
+        } else {
+            // Если карточка не перевернута, показываем поле ввода и кнопку "Check"
+            answerButtons.classList.add('hidden');
+            checkAnswerBtn.classList.remove('hidden');
+        }
     } else {
-        showAnswerBtn.classList.remove('hidden'); answerButtons.classList.add('hidden');
-        answerInput.classList.add('hidden'); checkAnswerBtn.classList.add('hidden');
-        if (isFlipped) { showAnswerBtn.classList.add('hidden'); answerButtons.classList.remove('hidden'); }
+        // Логика для режима без ввода (просто показ ответа)
+        answerInput.classList.add('hidden');
+        checkAnswerBtn.classList.add('hidden');
+        if (isFlipped) {
+            showAnswerBtn.classList.add('hidden');
+            answerButtons.classList.remove('hidden');
+        } else {
+            showAnswerBtn.classList.remove('hidden');
+            answerButtons.classList.add('hidden'); // Скрываем кнопки оценки, пока не показан ответ
+        }
     }
 }
 
 showAnswerBtn.addEventListener('click', () => { cardContainer.classList.add('is-flipped'); updateUIMode(); if (isAudioAutoplay) speak(currentWord.english); });
-checkAnswerBtn.addEventListener('click', () => {
-    const isCorrect = answerInput.value.toLowerCase().trim() === currentWord.english.toLowerCase().trim();
+
+async function checkAnswerWithAI() {
+    const userAnswer = answerInput.value.trim();
+    if (userAnswer === '') return;
+
+    checkAnswerBtn.disabled = true;
+    checkAnswerBtn.textContent = 'Checking...';
+    feedbackContainer.classList.remove('hidden');
+    feedbackContainer.textContent = '🧠 Идет проверка...';
+
+    const payload = {
+        action: 'checkAnswer',
+        original: currentWord.russian,
+        reference: currentWord.english,
+        userAnswer: userAnswer
+    };
+
+    const result = await sendData(payload);
+
+    // Логируем ответ пользователя и фидбэк в новую колонку
+    await sendData({
+        action: 'logDetailedAnswer',
+        wordId: currentWord.id,
+        userAnswer: userAnswer,
+        feedback: result.feedback,
+        isCorrect: result.isCorrect
+    });
+    // Логируем ответ пользователя в старую колонку AnswerHistory
+    logAnswer(userAnswer);
+
     cardContainer.classList.add('is-flipped');
-    updateUIMode();
     if (isAudioAutoplay) speak(currentWord.english);
-    if (!isCorrect) { document.body.style.backgroundColor = '#fff0f0'; setTimeout(() => document.body.style.backgroundColor = '#f0f2f5', 500); }
-});
+
+    if (!result || typeof result.isCorrect === 'undefined') {
+        feedbackContainer.textContent = "Ошибка: получен неверный ответ от сервера.";
+        feedbackContainer.style.color = 'var(--red)';
+        checkAnswerBtn.disabled = false;
+        checkAnswerBtn.textContent = 'Check';
+        return;
+    }
+
+    // Добавляем предложенный правильный ответ прямо в фидбэк
+    let fullFeedback = result.feedback;
+    if (!result.isCorrect && result.suggestedCorrectAnswer) {
+        fullFeedback += `\n\n**Предложенный правильный ответ:** ${result.suggestedCorrectAnswer}`;
+    }
+
+    feedbackContainer.innerHTML = fullFeedback.replace(/\n/g, '<br>'); // Заменяем переносы строк на HTML
+
+    if (result.isCorrect) {
+        feedbackContainer.style.color = 'var(--green)';
+        document.body.style.backgroundColor = '#f0fff0';
+    } else {
+        feedbackContainer.style.color = 'var(--red)';
+        document.body.style.backgroundColor = '#fff0f0';
+    }
+    
+    // Всегда показываем кнопки Again/Hard/Easy после получения фидбэка
+    updateUIMode(); 
+    
+    setTimeout(() => document.body.style.backgroundColor = '#f0f2f5', 800);
+    checkAnswerBtn.disabled = false;
+    checkAnswerBtn.textContent = 'Check';
+}
+
+checkAnswerBtn.addEventListener('click', checkAnswerWithAI);
 
 againBtn.addEventListener('click', () => processAnswer(1, 'Again'));
 hardBtn.addEventListener('click', () => processAnswer(3, 'Hard'));
@@ -169,6 +278,7 @@ undoBtn.addEventListener('click', () => { if (!lastAction) return; sendData({ ac
 typingModeToggle.addEventListener('change', (e) => { isTypingMode = e.target.checked; saveSettings(); updateUIMode(); });
 audioAutoplayToggle.addEventListener('change', (e) => { isAudioAutoplay = e.target.checked; saveSettings(); });
 newCardLimitInput.addEventListener('change', () => { saveSettings(); fetchWords(); });
+
 
 loadSettings();
 fetchWords();
