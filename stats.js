@@ -1,4 +1,4 @@
-let SCRIPT_URL; // Will be set from CONFIG
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzg2P_9DgRgFwudfgWCXQVJdAnFRAbrklmES8l4hePWb-y569tTAqeSXZehSjK62gzY/exec';
 
 const appContainer = document.getElementById('app-container');
 const tableContainer = document.getElementById('table-container');
