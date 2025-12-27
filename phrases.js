@@ -1,4 +1,4 @@
-let SCRIPT_URL; // Will be set from CONFIG
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwx8W8rZuxhpPA_LjscRzB2PattBDl3yRcCMpCNIIKK6ym3V9b42rsAATP8DSfqxVeF/exec';
 
 const phrasesContainer = document.getElementById('phrases-list-container');
 const tagsFilterContainer = document.getElementById('tags-filter-container');
