@@ -19,6 +19,25 @@
                 <label class="switch"><input type="checkbox" id="typing-mode-toggle"><span></span></label> Type-in Answer
                 <label class="switch"><input type="checkbox" id="audio-autoplay-toggle"><span></span></label> Autoplay Audio
             </div>
+            <div class="ai-provider-settings">
+                <div class="provider-selector">
+                    <label for="ai-provider">AI Provider:</label>
+                    <select id="ai-provider">
+                        <option value="gemini">Gemini (Google)</option>
+                        <option value="groq">Groq (Free)</option>
+                    </select>
+                </div>
+                <div class="model-selector" id="groq-models" style="display: none;">
+                    <label for="groq-model">Model:</label>
+                    <select id="groq-model">
+                        <option value="llama-3.3-70b-versatile">Llama 3.3 70B (Most Powerful)</option>
+                        <option value="gemma2-9b-it">Gemma 2 9B (Balanced)</option>
+                        <option value="llama-3.1-8b-instant">Llama 3.1 8B (Fastest)</option>
+                        <option value="deepseek-r1-distill-llama-70b">DeepSeek R1 70B (Advanced)</option>
+                    </select>
+                </div>
+                <button id="test-models-btn" style="background: none; border: none; color: #007bff; cursor: pointer; text-decoration: underline; padding: 0; margin-left: 20px;">🧪 Test Models</button>
+            </div>
         </div>
         <div id="card-wrapper">
             <div id="card-container">
@@ -49,10 +68,14 @@
                 <button id="suspend-btn" class="card-icon-btn">❄️ Suspend</button>
             </div>
         </div>
-        <a href="stats.html" class="nav-link">Listening & Shadowing</a>
-        <a href="dashboard.html" class="nav-link">Dashboard</a>
-        <a href="phrases.html" class="nav-link">Phrases</a>
+        <nav class="bottom-navigation">
+            <a href="index.html" class="nav-btn active">🎯 Flashcards</a>
+            <a href="stats.html" class="nav-btn">📊 Listening</a>
+            <a href="dashboard.html" class="nav-btn">📈 Dashboard</a>
+            <a href="phrases.html" class="nav-btn">📝 Phrases</a>
+        </nav>
     </div>
+    <script src="config.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

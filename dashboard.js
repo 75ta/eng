@@ -1,4 +1,4 @@
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby2lP9WGeEnXf-QhLPa8Ggu6FKytoMQ8Fh-IbeSXSHsvGB7YrnDQNkVSg8kqbYiWVYs/exec';
+let SCRIPT_URL; // Will be set from CONFIG
 
 const streakCountEl = document.getElementById('streak-count');
 const forecastCanvas = document.getElementById('forecastChart');
