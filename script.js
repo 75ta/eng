@@ -1,4 +1,4 @@
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwx8W8rZuxhpPA_LjscRzB2PattBDl3yRcCMpCNIIKK6ym3V9b42rsAATP8DSfqxVeF/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxAzzMJnugyTdZLGSXld6UIB9MD4I8HQRh_Ef48usNCe-QN2yW1nieriRUYOtTV3KE2/exec';
 
 const wordEl = document.getElementById('word');
 const translationEl = document.getElementById('translation');
@@ -415,14 +415,43 @@ function displayNextCard() {
     cardContainer.classList.remove('is-flipped');
     answerInput.value = '';
     
-    // Проверяем, это фраза или обычное слово
+    // Проверяем тип карточки: фраза, предложение или обычное слово
     if (currentWord.type === 'phrase') {
         renderPhraseCard(currentWord);
+    } else if (currentWord.type === 'sentence') {
+        renderSentenceCard(currentWord);
     } else {
         renderWordCard(currentWord);
     }
     
     updateUIMode();
+}
+
+function renderSentenceCard(sentence) {
+    // Для sentence типа показываем первые буквы слов + русский перевод
+    const promptText = sentence.prompt_en || sentence.english;
+    const translationText = sentence.translation_ru || sentence.russian;
+    
+    // Фронт карточки: первые буквы слов + перевод
+    wordEl.innerHTML = `
+        <div style="margin-bottom: 12px; font-size: 1.2em;">${promptText}</div>
+        <div style="font-size: 0.9em; color: #666;">${translationText}</div>
+    `;
+    
+    // Обратная сторона: полное предложение + перевод
+    const fullSentence = sentence.target_en || sentence.english;
+    translationEl.innerHTML = `
+        <div class="sentence-answer" style="padding: 10px; background: #e8f5e9; border-radius: 4px;">
+            <div style="margin-bottom: 12px; font-size: 1.2em;"><strong>${fullSentence}</strong></div>
+            <div style="font-size: 0.9em; color: #666;">${translationText}</div>
+        </div>
+    `;
+}
+
+function renderWordCard(word) {
+    // Обычная карточка для слов
+    wordEl.textContent = word.english;
+    translationEl.textContent = word.russian;
 }
 
 function renderPhraseCard(phrase) {
@@ -533,8 +562,8 @@ function updateUIMode() {
     sessionStatsEl.classList.remove('hidden');
     const isFlipped = cardContainer.classList.contains('is-flipped');
     
-    // Для фраз всегда включаем режим ввода, независимо от настройки
-    const effectiveTypingMode = isTypingMode || (currentWord && currentWord.type === 'phrase');
+    // Для фраз и предложений всегда включаем режим ввода, независимо от настройки
+    const effectiveTypingMode = isTypingMode || (currentWord && (currentWord.type === 'phrase' || currentWord.type === 'sentence'));
     
     // Логика для режима ввода
     if (effectiveTypingMode) {
@@ -550,7 +579,9 @@ function updateUIMode() {
             // Если карточка не перевернута, показываем поле ввода и кнопку "Check"
             answerButtons.classList.add('hidden');
             checkAnswerBtn.classList.remove('hidden');
-            answerInput.placeholder = currentWord && currentWord.type === 'phrase' ? 'Type the phrase...' : 'Type the translation...';
+            const placeholderText = currentWord && currentWord.type === 'phrase' ? 'Type the phrase...' : 
+                                   currentWord && currentWord.type === 'sentence' ? 'Type the full sentence...' : 'Type the translation...';
+            answerInput.placeholder = placeholderText;
         }
     } else {
         // Логика для режима без ввода (просто показ ответа)
@@ -573,9 +604,9 @@ function updateUIMode() {
     // Используем только реальную настройку typing mode (не принудительный для фраз)
     const effectiveTypingMode = isTypingMode;
     
-    // Если уже перевернуто и это фраза — покажем ответ
-    if (isFlipped && currentWord && currentWord.type === 'phrase') {
-        const ans = document.getElementById('phrase-answer');
+    // Если уже перевернуто и это фраза или предложение — покажем ответ
+    if (isFlipped && currentWord && (currentWord.type === 'phrase' || currentWord.type === 'sentence')) {
+        const ans = document.getElementById('phrase-answer') || document.querySelector('.sentence-answer');
         if (ans) ans.style.display = 'block';
     }
 
@@ -610,12 +641,13 @@ function updateUIMode() {
 }
 showAnswerBtn.addEventListener('click', () => {
     cardContainer.classList.add('is-flipped');
-    if (currentWord && currentWord.type === 'phrase') {
-        const ans = document.getElementById('phrase-answer');
+    if (currentWord && (currentWord.type === 'phrase' || currentWord.type === 'sentence')) {
+        const ans = document.getElementById('phrase-answer') || document.querySelector('.sentence-answer');
         if (ans) ans.style.display = 'block';
     }
     updateUIMode();
-    if (isAudioAutoplay) speak(currentWord.english);
+    const textToSpeak = (currentWord.type === 'sentence' || currentWord.type === 'phrase') && currentWord.target_en ? currentWord.target_en : currentWord.english;
+    if (isAudioAutoplay) speak(textToSpeak);
 });
 
 async function checkAnswerWithAI() {
@@ -627,9 +659,10 @@ async function checkAnswerWithAI() {
 
     let result;
 
-    // Если это фраза — простая проверка вместо ИИ
-    if (currentWord.type === 'phrase') {
-        result = checkPhraseAnswer(userAnswer, currentWord.target_en);
+    // Если это фраза или предложение — простая проверка вместо ИИ
+    if (currentWord.type === 'phrase' || currentWord.type === 'sentence') {
+        const targetText = currentWord.target_en || currentWord.english;
+        result = checkPhraseAnswer(userAnswer, targetText);
     } else {
         // Для обычных слов используем ИИ
         console.log(`Using ${currentAIProvider} API with model: ${currentGroqModel}`);
@@ -664,7 +697,8 @@ async function checkAnswerWithAI() {
     logAnswer(userAnswer);
 
     cardContainer.classList.add('is-flipped');
-    if (isAudioAutoplay) speak(currentWord.english);
+    const textToSpeak = (currentWord.type === 'sentence' || currentWord.type === 'phrase') && currentWord.target_en ? currentWord.target_en : currentWord.english;
+    if (isAudioAutoplay) speak(textToSpeak);
 
     if (!result || typeof result.isCorrect === 'undefined') {
         feedbackContainer.textContent = "Ошибка: получен неверный ответ от сервера.";
@@ -709,7 +743,13 @@ againBtn.addEventListener('click', () => processAnswer(1, 'Again'));
 hardBtn.addEventListener('click', () => processAnswer(3, 'Hard'));
 easyBtn.addEventListener('click', () => processAnswer(5, 'Easy'));
 suspendBtn.addEventListener('click', () => { if (!currentWord) return; sendData({ action: 'updateStatus', id: currentWord.id, status: 'suspended' }); displayNextCard(); });
-audioBtn.addEventListener('click', (e) => { e.stopPropagation(); if (currentWord) speak(currentWord.english); });
+audioBtn.addEventListener('click', (e) => { 
+    e.stopPropagation(); 
+    if (currentWord) {
+        const textToSpeak = (currentWord.type === 'sentence' || currentWord.type === 'phrase') && currentWord.target_en ? currentWord.target_en : currentWord.english;
+        speak(textToSpeak);
+    }
+});
 undoBtn.addEventListener('click', () => { if (!lastAction) return; sendData({ action: 'updateWord', wordData: lastAction.wordBefore }); undoBtn.classList.add('hidden'); sessionStatsEl.textContent = 'Action reverted.'; });
 typingModeToggle.addEventListener('change', (e) => { isTypingMode = e.target.checked; saveSettings(); updateUIMode(); });
 audioAutoplayToggle.addEventListener('change', (e) => { isAudioAutoplay = e.target.checked; saveSettings(); });
