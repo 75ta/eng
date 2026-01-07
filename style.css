@@ -79,3 +79,51 @@ th { background-color: var(--light-grey); position: sticky; top: 0; }
 .nav-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px 15px; text-decoration: none; color: var(--grey); font-size: 0.85em; border: none; background: none; cursor: pointer; transition: all 0.3s ease; border-radius: 8px; }
 .nav-btn:hover { background-color: var(--light-grey); color: var(--blue); }
 .nav-btn.active { color: var(--blue); background-color: var(--light-grey); font-weight: bold; }
+
+/* --- VOICE PAGE --- */
+.voice-controls .control-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+.voice-controls .hint { color: var(--grey); font-size: 0.85em; }
+.voice-controls label { display: flex; align-items: center; gap: 6px; }
+.voice-controls input[type="radio"], .voice-controls input[type="checkbox"] { cursor: pointer; }
+.record-row { display: flex; align-items: center; gap: 12px; margin-top: 10px; }
+.primary-btn { padding: 12px 18px; background: var(--blue); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 1em; }
+.primary-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.timer { font-weight: bold; min-width: 40px; }
+.status-text { color: var(--grey); min-height: 20px; }
+.panel { background: white; border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; margin: 16px auto; max-width: 1120px; text-align: left; }
+.transcript-box { min-height: 80px; background: var(--light-grey); padding: 12px; border-radius: 6px; white-space: pre-wrap; word-wrap: break-word; }
+.status-chip { padding: 6px 10px; border-radius: 999px; background: var(--light-grey); color: var(--grey); font-size: 0.9em; }
+.badge { padding: 4px 8px; border-radius: 6px; font-size: 0.85em; text-transform: lowercase; }
+.badge-saved { background: #e6f4ea; color: var(--green); }
+.badge-sent { background: #e6f0ff; color: var(--blue); }
+.badge-pending { background: #fff4e5; color: var(--yellow); }
+.link-btn { background: none; border: none; cursor: pointer; color: var(--blue); font-size: 1em; padding: 2px 6px; }
+.lang-toggle-btn { padding: 8px 12px; background: #e9ecef; border: 1px solid var(--border-color); border-radius: 6px; cursor: pointer; font-size: 0.9em; }
+.lang-toggle-btn:hover { background: var(--light-grey); }
+/* Voice page styles */
+.voice-controls { display: flex; flex-direction: column; gap: 15px; }
+.control-row { display: flex; flex-direction: column; gap: 5px; }
+.control-row label { font-weight: 600; margin-bottom: 5px; }
+.control-row select, .control-row input { padding: 8px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.95em; }
+.record-row { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
+.primary-btn { padding: 12px 24px; background: var(--blue); color: white; border: none; border-radius: 8px; font-size: 1em; cursor: pointer; font-weight: 600; }
+.primary-btn:hover { background: #0056b3; }
+.primary-btn:disabled { background: #ccc; cursor: not-allowed; }
+.timer { font-weight: bold; font-family: monospace; font-size: 1.2em; color: var(--grey); }
+.status-text { color: var(--grey); font-style: italic; }
+.transcript-box { background: #f9f9f9; padding: 15px; border: 1px solid var(--border-color); border-radius: 8px; min-height: 60px; text-align: left; line-height: 1.5; }
+.hint { font-size: 0.85em; color: #999; display: block; margin-top: 5px; }
+#voice-table-container { margin-top: 20px; overflow-x: auto; }
+.voice-table { font-size: 0.95em; }
+.voice-table thead { position: sticky; top: 0; }
+.voice-table tbody tr:hover { background: #f5f5f5; }
+#manual-text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, monospace; font-size: 0.95em; }
+/* Adaptive table for mobile */
+@media (max-width: 768px) {
+    .voice-table thead { display: none; }
+    .voice-table, .voice-table tbody, .voice-table tr, .voice-table td { display: block; width: 100%; }
+    .voice-table tr { margin-bottom: 15px; border: 1px solid #ddd; border-radius: 8px; padding: 10px; background: white; }
+    .voice-table td { border: none !important; padding: 8px 10px !important; text-align: left !important; position: relative; padding-left: 40% !important; }
+    .voice-table td:before { content: attr(data-label); position: absolute; left: 10px; width: 35%; font-weight: bold; color: #333; }
+    .voice-table tbody tr:hover { background: white; }
+}
