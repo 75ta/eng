@@ -26,7 +26,7 @@ async function loadConfig() {
     return {
         GEMINI_API_KEY: 'your_gemini_api_key_here',
         GROQ_API_KEY: 'your_groq_api_key_here',
-        SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbxAzzMJnugyTdZLGSXld6UIB9MD4I8HQRh_Ef48usNCe-QN2yW1nieriRUYOtTV3KE2/exec'
+        SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbzCa3eRClYVd3LADqGBhOe0cs3rSJoOm0bAxmoW_BQPG4DkiSmvNWv1ARz-xS4i9GRC/exec'
     };
 }
 

@@ -1,25 +1,20 @@
 // Whisper-only voice recording
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz9_8oqDfUQvRWbFrc_79V4hpj9Llh1ox0Kz5UlUI2DtFYQVOj3OnjxRyPbyLLtcZQ/exec';
+let SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzCa3eRClYVd3LADqGBhOe0cs3rSJoOm0bAxmoW_BQPG4DkiSmvNWv1ARz-xS4i9GRC/exec';
 
 let CONFIG = {};
 
-// Load config from .env
+// Load config via shared loader (falls back to defaults)
 async function initConfig() {
     try {
-        const response = await fetch('./.env');
-        if (response.ok) {
-            const envText = await response.text();
-            envText.split('\n').forEach(line => {
-                const [key, ...valueParts] = line.split('=');
-                if (key && valueParts.length > 0) {
-                    const value = valueParts.join('=').replace(/^["']|["']$/g, '');
-                    CONFIG[key.trim()] = value.trim();
-                }
-            });
-            console.log('[Voice] Config loaded:', Object.keys(CONFIG));
+        const cfg = await window.loadConfig();
+        CONFIG = cfg || {};
+        if (CONFIG.SCRIPT_URL) {
+            SCRIPT_URL = CONFIG.SCRIPT_URL;
         }
+        console.log('[Voice] Config loaded keys:', Object.keys(CONFIG));
+        console.log('[Voice] Using SCRIPT_URL:', SCRIPT_URL);
     } catch (error) {
-        console.warn('[Voice] Could not load .env file:', error);
+        console.warn('[Voice] Could not load config.js:', error);
     }
 }
 
@@ -224,7 +219,7 @@ function addRowsFromText(text) {
 
     console.log('[Voice] useLLMCheckbox:', useLLMCheckbox, 'checked:', useLLMCheckbox?.checked);
     if (useLLMCheckbox && useLLMCheckbox.checked) {
-        console.log('[Voice] Starting LLM analysis...');
+        console.log('[Voice] Starting LLM analysis (server-side Groq)...');
         runLLMAnalysis(payloadRows, text);
     } else {
         console.log('[Voice] LLM analysis skipped (checkbox not checked or not found)');
@@ -279,126 +274,49 @@ function sendToSheet(row) {
 }
 
 async function runLLMAnalysis(targetRows, originalText) {
-    console.log('[Voice] runLLMAnalysis called, CONFIG.GROQ_API_KEY:', CONFIG.GROQ_API_KEY ? 'exists' : 'missing');
-    
-    if (!CONFIG.GROQ_API_KEY) {
-        setStatus('⚠️ GROQ_API_KEY не установлен в .env');
-        console.error('[Voice] GROQ_API_KEY not found in CONFIG');
-        return;
-    }
-
-    setStatus('🤖 Анализ Groq...');
-    console.log('[Voice] Sending to Groq, text:', originalText);
-
-    const prompt = `You are an English teacher. Analyze the provided English text sentence by sentence.
-
-IMPORTANT: For each sentence, you MUST provide ALL three fields:
-1. "original": The exact original English sentence
-2. "translation": Russian translation (ALWAYS required, even if there are errors)
-3. "errors": If there are grammar/spelling errors, write the CORRECTED sentence first, then add " ||| Errors: " followed by the list of errors. If no errors, use empty string ""
-
-Return ONLY a valid JSON array with no additional text or formatting.
-
-Format (with errors):
-[
-  {
-    "original": "He are cat",
-    "translation": "Он кот",
-    "errors": "He is a cat ||| Errors: Wrong verb form 'are' (should be 'is'), Missing article 'a' before 'cat'"
-  }
-]
-
-Format (no errors):
-[
-  {
-    "original": "She likes apples",
-    "translation": "Она любит яблоки",
-    "errors": ""
-  }
-]
-
-Text to analyze:
-"${originalText}"`;
+    setStatus('🤖 Анализ (сервер)...');
+    console.log('[Voice] Sending text to GAS for Groq analysis');
 
     const payload = {
-        model: 'llama-3.3-70b-versatile',
-        messages: [
-            {
-                role: "user",
-                content: prompt
-            }
-        ],
-        temperature: 0.3,
-        max_tokens: 1000
+        action: 'analyzeVoiceRows',
+        text: originalText,
+        model: 'llama-3.3-70b-versatile'
     };
 
     try {
-        console.log('[Voice] Fetching from Groq API...');
-        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        const response = await fetch(SCRIPT_URL, {
             method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${CONFIG.GROQ_API_KEY}`,
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
 
-        console.log('[Voice] Groq response status:', response.status);
-        
         if (!response.ok) {
             const errorText = await response.text();
-            console.error('[Voice] Groq error response:', errorText);
-            throw new Error(`Groq API error: ${response.status} - ${errorText}`);
+            console.error('[Voice] GAS analyze error:', errorText);
+            throw new Error(`GAS analyzeVoiceRows HTTP ${response.status}`);
         }
 
         const data = await response.json();
-        const content = data.choices[0].message.content;
-        console.log('[Voice] Groq response content:', content);
-
-        // Robust Parsing (adapted from script.js)
-        let cleanedContent = content.replace(/```json\n?/g, '').replace(/\n?```/g, '');
-        
-        // Try to find JSON array
-        const jsonMatch = cleanedContent.match(/\[\s*\{[\s\S]*\}\s*\]/);
-        if (jsonMatch) {
-            cleanedContent = jsonMatch[0];
+        if (data.status !== 'ok' || !Array.isArray(data.items)) {
+            throw new Error(data.message || 'Invalid analyze response');
         }
 
-        let parsed = [];
-        try {
-            parsed = JSON.parse(cleanedContent);
-        } catch (firstError) {
-            console.log('[Voice] First JSON parse failed:', firstError.message);
-            // Try to fix common issues with newlines in strings
-            let fixedContent = cleanedContent
-                .replace(/\n/g, '\\n')
-                .replace(/\r/g, '\\r')
-                .replace(/\t/g, '\\t');
-            try {
-                parsed = JSON.parse(fixedContent);
-            } catch (secondError) {
-                console.error('[Voice] Second JSON parse failed:', secondError.message);
-                throw new Error('Failed to parse JSON response');
+        targetRows.forEach((row, idx) => {
+            const item = data.items[idx];
+            if (item) {
+                row.translation = item.translation || row.translation;
+                row.errors = item.errors || row.errors;
             }
-        }
+        });
 
-        if (Array.isArray(parsed)) {
-            targetRows.forEach((row, idx) => {
-                // Try to find matching sentence or just use index
-                const item = parsed[idx]; // Simple index matching for now
-                if (item) {
-                    row.translation = item.translation || row.translation;
-                    row.errors = item.errors || row.errors;
-                }
-            });
-        }
-        
         saveRowsToStorage();
         renderTable();
         setStatus('✅ Анализ готов');
     } catch (err) {
-        console.error('[Voice] Groq error:', err);
-        setStatus('⚠️ Groq ошибка: ' + err.message);
+        console.error('[Voice] Analyze error:', err);
+        setStatus('❌ Ошибка анализа');
+    } finally {
+        recordBtn.disabled = false;
     }
 }
 

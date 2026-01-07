@@ -1,4 +1,4 @@
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxAzzMJnugyTdZLGSXld6UIB9MD4I8HQRh_Ef48usNCe-QN2yW1nieriRUYOtTV3KE2/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzCa3eRClYVd3LADqGBhOe0cs3rSJoOm0bAxmoW_BQPG4DkiSmvNWv1ARz-xS4i9GRC/exec';
 
 const wordEl = document.getElementById('word');
 const translationEl = document.getElementById('translation');
