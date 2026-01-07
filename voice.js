@@ -264,7 +264,8 @@ function sendToSheet(row) {
     
     fetch(SCRIPT_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        // Use simple CORS-safe content type to avoid preflight
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify(payload)
     }).then(r => r.json()).then(data => {
         console.log('[Voice] Sheet response:', data);
@@ -286,7 +287,7 @@ async function runLLMAnalysis(targetRows, originalText) {
     try {
         const response = await fetch(SCRIPT_URL, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
             body: JSON.stringify(payload)
         });
 
