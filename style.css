@@ -72,7 +72,7 @@ th { background-color: var(--light-grey); position: sticky; top: 0; }
 .tag-label { background-color: #e9ecef; color: #495057; padding: 3px 8px; border-radius: 10px; font-size: 0.8em; margin-right: 5px; }
 .phrase-controls { display: flex; align-items: center; gap: 15px; }
 .rating-stars span { font-size: 1.5rem; cursor: pointer; color: #ccc; }
-.rating-stars span.active { color: var(--yellow); }
+.rating-stars span.active { color: #ff4500; }
 
 /* --- BOTTOM NAVIGATION --- */
 .bottom-navigation { display: flex; justify-content: space-around; align-items: center; padding: 15px; background-color: white; border-top: 1px solid var(--border-color); margin-top: 40px; position: sticky; bottom: 0; }
@@ -120,10 +120,11 @@ th { background-color: var(--light-grey); position: sticky; top: 0; }
 #manual-text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, monospace; font-size: 0.95em; }
 /* Adaptive table for mobile */
 @media (max-width: 768px) {
+    #app-container.stats-container { padding: 20px 5px; }
     .voice-table thead { display: none; }
     .voice-table, .voice-table tbody, .voice-table tr, .voice-table td { display: block; width: 100%; }
     .voice-table tr { margin-bottom: 15px; border: 1px solid #ddd; border-radius: 8px; padding: 10px; background: white; }
-    .voice-table td { border: none !important; padding: 8px 10px !important; text-align: left !important; position: relative; padding-left: 40% !important; }
+    .voice-table td { border: none !important; padding: 8px 10px !important; text-align: left !important; position: relative; padding-left: 40% !important; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; }
     .voice-table td:before { content: attr(data-label); position: absolute; left: 10px; width: 35%; font-weight: bold; color: #333; }
     .voice-table tbody tr:hover { background: white; }
 }
