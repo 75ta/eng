@@ -60,119 +60,6 @@ submitTextBtn.addEventListener('click', () => {
     setStatus('✅ Текст добавлен');
 });
 
-// Initialize worker
-function initWorker() {
-    worker = new Worker('whisper-worker.js');
-    
-    worker.onmessage = (e) => {
-        const { status, output, error } = e.data;
-        
-        if (status === 'loaded') {
-            console.log('[Voice] Model loaded');
-            setStatus('✅ Model ready');
-        } else if (status === 'progress') {
-            setStatus(`📥 Loading... ${output}`);
-        } else if (status === 'complete') {
-            console.log('[Voice] Transcription:', output);
-            transcriptEl.textContent = output.text || '';
-            
-            if (output.text && output.text.trim()) {
-                addRowsFromText(output.text.trim());
-            }
-            
-            setStatus('✅ Ready');
-            recordBtn.disabled = false;
-        } else if (status === 'error') {
-            console.error('[Voice] Worker error:', error);
-            setStatus('❌ Error: ' + error);
-            recordBtn.disabled = false;
-        }
-    };
-}
-
-// Record button
-recordBtn.addEventListener('click', async () => {
-    if (isRecording) {
-        // Stop recording
-        console.log('[Voice] Stopping recording');
-        isRecording = false;
-        mediaRecorder.stop();
-        recordBtn.textContent = '🎙️ Начать запись';
-        recordBtn.style.background = '';
-        stopTimer();
-    } else {
-        // Start recording
-        console.log('[Voice] Starting recording');
-        
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            
-            mediaRecorder = new MediaRecorder(stream);
-            chunks = [];
-            
-            mediaRecorder.ondataavailable = (e) => {
-                chunks.push(e.data);
-            };
-            
-            mediaRecorder.onstop = () => {
-                console.log('[Voice] Recording stopped, processing...');
-                stream.getTracks().forEach(track => track.stop());
-                
-                const audioBlob = new Blob(chunks, { type: 'audio/webm' });
-                processAudio(audioBlob);
-            };
-            
-            mediaRecorder.start();
-            isRecording = true;
-            recordBtn.textContent = '⏹️ Остановить';
-            recordBtn.style.background = '#dc3545';
-            setStatus('🎤 Запись...');
-            transcriptEl.textContent = '';
-            startTimer();
-            
-        } catch (e) {
-            console.error('[Voice] Microphone error:', e);
-            setStatus('❌ Нет доступа к микрофону');
-        }
-    }
-});
-
-// Process audio
-async function processAudio(audioBlob) {
-    try {
-        setStatus('⏳ Обработка аудио...');
-        recordBtn.disabled = true;
-        
-        const arrayBuffer = await audioBlob.arrayBuffer();
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
-        const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-        
-        // Resample to 16kHz mono
-        const offlineContext = new OfflineAudioContext(1, audioBuffer.duration * 16000, 16000);
-        const source = offlineContext.createBufferSource();
-        source.buffer = audioBuffer;
-        source.connect(offlineContext.destination);
-        source.start(0);
-        
-        const resampledBuffer = await offlineContext.startRendering();
-        const audioData = resampledBuffer.getChannelData(0);
-        
-        console.log('[Voice] Audio processed, sending to worker');
-        setStatus('🧠 Распознавание...');
-        
-        const model = modelSelect.value;
-        worker.postMessage({
-            audio: audioData,
-            model: MODEL_MAP[model]
-        });
-        
-    } catch (e) {
-        console.error('[Voice] Processing error:', e);
-        setStatus('❌ Ошибка обработки');
-        recordBtn.disabled = false;
-    }
-}
-
 // Timer
 function startTimer() {
     seconds = 0;
@@ -180,17 +67,17 @@ function startTimer() {
         seconds++;
         const m = Math.floor(seconds / 60);
         const s = seconds % 60;
-        timerEl.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        if (timerEl) timerEl.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
     }, 1000);
 }
 
 function stopTimer() {
     clearInterval(timerId);
-    timerEl.textContent = '00:00';
+    if (timerEl) timerEl.textContent = '00:00';
 }
 
 function setStatus(text) {
-    statusEl.textContent = text;
+    if (statusEl) statusEl.textContent = text;
 }
 
 // Table
@@ -205,7 +92,7 @@ function addRowsFromText(text) {
         id: crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`,
         time: new Date().toLocaleString(),
         text: sentence,
-        model: modelSelect.value,
+        model: modelSelect ? modelSelect.value : 'manual',
         translation: '',
         errors: '',
         favorite: false
@@ -216,21 +103,14 @@ function addRowsFromText(text) {
     console.log('[Voice] Added rows:', payloadRows, 'Total rows now:', rows.length);
     renderTable();
 
-    console.log('[Voice] useLLMCheckbox:', useLLMCheckbox, 'checked:', useLLMCheckbox?.checked);
-    if (useLLMCheckbox && useLLMCheckbox.checked) {
-        console.log('[Voice] Starting LLM analysis (server-side Groq)...');
-        runLLMAnalysis(payloadRows, text);
-    } else {
-        // Если анализ не нужен — отправляем строки сразу
-        payloadRows.forEach(sendToSheet);
-        console.log('[Voice] LLM analysis skipped (checkbox not checked or not found)');
-    }
+    console.log('[Voice] Starting LLM analysis (server-side Groq)...');
+    runLLMAnalysis(payloadRows, text);
 }
 
 function renderTable() {
     console.log('[Voice] renderTable: rows count =', rows.length);
     if (rows.length === 0) {
-        tableContainer.innerHTML = '<p style="color:#999;">Нет записей. Запишите аудио или введите текст выше.</p>';
+        tableContainer.innerHTML = '<p style="color:#999;">Нет записей. Введите текст выше.</p>';
         return;
     }
     
@@ -348,7 +228,7 @@ async function runLLMAnalysis(targetRows, originalText) {
         console.error('[Voice] Analyze error:', err);
         setStatus('❌ Ошибка анализа');
     } finally {
-        recordBtn.disabled = false;
+        // recordBtn.disabled = false;
     }
 }
 
@@ -398,6 +278,6 @@ function testScriptUrl() {
     testScriptUrl();
     rows = loadRowsFromStorage(); // Reload after config
     renderTable();
-    initWorker();
+    // initWorker();
     console.log('[Voice] Setup complete');
 })();

@@ -10,43 +10,20 @@
     <div id="app-container" class="stats-container">
         <div class="main-header">
             <h1>Voice</h1>
-            <div id="model-status" class="status-chip">Model: tiny</div>
         </div>
 
-        <div class="controls-container voice-controls">
-            <div class="control-row">
-                <label for="model-select">Whisper Model</label>
-                <select id="model-select">
-                    <option value="tiny" selected>tiny (быстро, ~40MB)</option>
-                    <option value="base">base (сбаланс., ~140MB)</option>
-                    <option value="medium">medium (⚠️ требует ~2GB RAM, может зависнуть)</option>
-                </select>
-                <span class="hint">Medium часто приводит к Out Of Memory в браузере; рекомендуется tiny/base.</span>
-            </div>
-            <div class="control-row">
-                 <label class="inline"><input type="checkbox" id="use-llm" checked> Анализировать (локальная LLM, Ollama)</label>
-                <span class="hint">Работает, если Ollama доступен на 127.0.0.1:11434 и разрешён CORS.</span>
-            </div>
-            <div class="record-row">
-                <button id="record-btn" class="primary-btn">🎙️ Начать запись</button>
-                <span id="record-timer" class="timer">00:00</span>
-                <span id="status-text" class="status-text"></span>
-            </div>
-        </div>
 
-        <div class="panel">
-            <h3>Транскрипт</h3>
-            <div id="transcript-text" class="transcript-box">Пока ничего не записано.</div>
-                </div>
+
+
 
                 <div class="panel">
-                    <h3>Или надиктуйте текст через телефон</h3>
             <div style="display: flex; flex-direction: column; gap: 10px;">
                 <textarea id="manual-text" class="transcript-box" rows="4" placeholder="Нажмите кнопку диктовки на клавиатуре телефона и надиктуйте текст..."></textarea>
+                <div id="translation-display"></div>
+                <div id="corrected-display"></div>
                 <button id="submit-text-btn" class="primary-btn" style="width: 100%; max-width: 200px;">📤 Отправить</button>
-
-        <div class="panel">
-            <h3>Таблица</h3>
+            </div>
+        </div>
             <div id="voice-table-container"><p>Нет записей.</p></div>
         </div>
 
