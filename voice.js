@@ -1,5 +1,5 @@
 // Whisper-only voice recording
-let SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzCa3eRClYVd3LADqGBhOe0cs3rSJoOm0bAxmoW_BQPG4DkiSmvNWv1ARz-xS4i9GRC/exec';
+let SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx-_TA6MovduDpZ2qygyPrre9XCJG1t1OSPcSMuFO3tdCbkMpeSjo504DKjVqvxjErh/exec';
 
 let CONFIG = {};
 
@@ -207,7 +207,8 @@ function addRowsFromText(text) {
         text: sentence,
         model: modelSelect.value,
         translation: '',
-        errors: ''
+        errors: '',
+        favorite: false
     }));
 
     rows = [...payloadRows, ...rows];
@@ -234,21 +235,41 @@ function renderTable() {
     }
     
     let html = '<table class="voice-table" style="width:100%; border-collapse: collapse; background:white;">';
-    html += '<thead><tr style="background:#f0f0f0;"><th style="border:1px solid #ccc;padding:10px;text-align:left;">Время</th><th style="border:1px solid #ccc;padding:10px;text-align:left;">Текст</th><th style="border:1px solid #ccc;padding:10px;text-align:left;">Перевод</th><th style="border:1px solid #ccc;padding:10px;text-align:left;">Ошибки</th><th style="border:1px solid #ccc;padding:10px;text-align:left;">Модель</th></tr></thead>';
+    html += '<thead><tr style="background:#f0f0f0;">'
+        +'<th style="border:1px solid #ccc;padding:10px;text-align:left;">★</th>'
+        +'<th style="border:1px solid #ccc;padding:10px;text-align:left;">Текст</th>'
+        +'<th style="border:1px solid #ccc;padding:10px;text-align:left;">Перевод</th>'
+        +'<th style="border:1px solid #ccc;padding:10px;text-align:left;">Ошибки</th>'
+        +'<th style="border:1px solid #ccc;padding:10px;text-align:left;">Время</th>'
+        +'<th style="border:1px solid #ccc;padding:10px;text-align:left;">Модель</th>'
+        +'</tr></thead>';
     html += '<tbody>';
     
-    rows.forEach(row => {
+    rows.forEach((row, idx) => {
+        const isFav = row.favorite ? true : false;
         html += `<tr style="border-bottom:1px solid #eee;">
-            <td data-label="Время" style="border:1px solid #ccc;padding:10px;font-size:0.85em;">${row.time}</td>
+            <td data-label="Favorite" style="border:1px solid #ccc;padding:10px;text-align:center;cursor:pointer;" class="fav-cell" data-row="${idx}">${isFav ? '⭐' : '☆'}</td>
             <td data-label="Текст" style="border:1px solid #ccc;padding:10px;">${row.text}</td>
             <td data-label="Перевод" style="border:1px solid #ccc;padding:10px;color:#0066cc;">${row.translation || '—'}</td>
             <td data-label="Ошибки" style="border:1px solid #ccc;padding:10px;color:#cc0000;">${row.errors || '—'}</td>
+            <td data-label="Время" style="border:1px solid #ccc;padding:10px;font-size:0.85em;">${row.time}</td>
             <td data-label="Модель" style="border:1px solid #ccc;padding:10px;font-size:0.9em;">${row.model}</td>
         </tr>`;
     });
     
     html += '</tbody></table>';
     tableContainer.innerHTML = html;
+    
+    // Добавляем обработчик клика по звёздочкам
+    document.querySelectorAll('.fav-cell').forEach(cell => {
+        cell.addEventListener('click', function() {
+            const idx = Number(this.getAttribute('data-row'));
+            rows[idx].favorite = !rows[idx].favorite;
+            saveRowsToStorage();
+            renderTable();
+        });
+    });
+    
     console.log('[Voice] renderTable complete');
 }
 
@@ -259,6 +280,7 @@ function sendToSheet(row) {
         transcript: row.text,
         translation: row.translation || '',
         errors: row.errors || '',
+        favorite: row.favorite || false,
         model: row.model
     };
     
@@ -307,6 +329,8 @@ async function runLLMAnalysis(targetRows, originalText) {
             if (item) {
                 row.translation = item.translation || row.translation;
                 row.errors = item.errors || row.errors;
+                // Отправляем обновлённую строку в Google Таблицу
+                sendToSheet(row);
             }
         });
 
