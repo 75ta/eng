@@ -1,5 +1,5 @@
 // Whisper-only voice recording
-let SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx-_TA6MovduDpZ2qygyPrre9XCJG1t1OSPcSMuFO3tdCbkMpeSjo504DKjVqvxjErh/exec';
+let SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwnB4CCW-37LHUic54mnWrs3wHZ8ufqVk65NySRDzwZs8-20G-rhUjlNqdYLvm1QVY/exec';
 
 let CONFIG = {};
 
@@ -216,13 +216,13 @@ function addRowsFromText(text) {
     console.log('[Voice] Added rows:', payloadRows, 'Total rows now:', rows.length);
     renderTable();
 
-    payloadRows.forEach(sendToSheet);
-
     console.log('[Voice] useLLMCheckbox:', useLLMCheckbox, 'checked:', useLLMCheckbox?.checked);
     if (useLLMCheckbox && useLLMCheckbox.checked) {
         console.log('[Voice] Starting LLM analysis (server-side Groq)...');
         runLLMAnalysis(payloadRows, text);
     } else {
+        // Если анализ не нужен — отправляем строки сразу
+        payloadRows.forEach(sendToSheet);
         console.log('[Voice] LLM analysis skipped (checkbox not checked or not found)');
     }
 }
@@ -267,6 +267,8 @@ function renderTable() {
             rows[idx].favorite = !rows[idx].favorite;
             saveRowsToStorage();
             renderTable();
+            // Отправляем обновлённую строку в Google Таблицу
+            sendToSheet(rows[idx]);
         });
     });
     
@@ -276,6 +278,7 @@ function renderTable() {
 function sendToSheet(row) {
     const payload = {
         action: 'addVoiceRow',
+        id: row.id,
         timestamp: row.time,
         transcript: row.text,
         translation: row.translation || '',
@@ -283,14 +286,18 @@ function sendToSheet(row) {
         favorite: row.favorite || false,
         model: row.model
     };
-    
+
     fetch(SCRIPT_URL, {
         method: 'POST',
-        // Use simple CORS-safe content type to avoid preflight
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify(payload)
     }).then(r => r.json()).then(data => {
         console.log('[Voice] Sheet response:', data);
+        // Если сервер вернул новый id, сохраняем его в строке
+        if (data && data.id && !row.id) {
+            row.id = data.id;
+            saveRowsToStorage();
+        }
     }).catch(e => {
         console.error('[Voice] Sheet error:', e);
     });
@@ -368,8 +375,27 @@ function loadRowsFromStorage() {
 }
 
 // Initialize
+function testScriptUrl() {
+    console.log('[Voice] Testing SCRIPT_URL:', SCRIPT_URL);
+    fetch(SCRIPT_URL + '?test=1', { method: 'GET', mode: 'cors' })
+        .then(async r => {
+            console.log('[Voice] Test response status:', r.status, r.statusText);
+            try {
+                const text = await r.text();
+                console.log('[Voice] Test response text:', text);
+            } catch (e) {
+                console.log('[Voice] Could not read response text:', e);
+            }
+        })
+        .catch(e => {
+            console.error('[Voice] Test fetch error:', e);
+        });
+}
+
 (async () => {
     await initConfig();
+    // Quick connectivity test to the Apps Script URL
+    testScriptUrl();
     rows = loadRowsFromStorage(); // Reload after config
     renderTable();
     initWorker();
