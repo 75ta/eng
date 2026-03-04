@@ -55,12 +55,34 @@ table { width: 100%; border-collapse: collapse; text-align: left; table-layout: 
 th, td { padding: 12px; border-bottom: 1px solid var(--border-color); }
 td pre { white-space: pre-wrap; word-wrap: break-word; margin: 0; font-family: inherit; font-size: inherit; }
 th { background-color: var(--light-grey); position: sticky; top: 0; }
+tbody tr { cursor: pointer; } tbody tr:hover { background-color: var(--light-grey); }
 .nav-link { margin: 10px; }
 #dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
 .dashboard-card { background-color: var(--light-grey); padding: 20px; border-radius: 8px; position: relative; min-height: 250px; }
 .dashboard-card h3 { margin-top: 0; }
 .streak-display { font-size: 4rem; font-weight: bold; text-align: center; display: flex; align-items: center; justify-content: center; height: 100%; }
 .ui-hidden .main-header, .ui-hidden .controls-container, .ui-hidden .nav-link { display: none; }
+
+/* --- TTS Player --- */
+.tts-player { position: sticky; bottom: 60px; background: white; border-top: 2px solid var(--blue); padding: 8px 16px; z-index: 100; }
+.tts-player-top { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 0.85em; min-height: 24px; }
+.tts-chapter { background: var(--blue); color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8em; white-space: nowrap; }
+.tts-sentence-text { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #333; }
+.tts-player-controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.tts-btn { background: none; border: 1px solid var(--border-color); border-radius: 5px; padding: 6px 12px; cursor: pointer; font-size: 0.9em; transition: background 0.2s; }
+.tts-btn:hover { background-color: var(--light-grey); }
+.tts-btn-play { background-color: var(--blue); color: white; border-color: var(--blue); min-width: 44px; }
+.tts-btn-play:hover { background-color: #0069d9; }
+.tts-progress { font-size: 0.8em; color: var(--grey); white-space: nowrap; }
+.tts-select { padding: 4px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.8em; max-width: 200px; }
+.tts-active-row { background-color: #e8f4fd !important; }
+.ui-hidden .tts-player { display: none; }
+@media (max-width: 600px) {
+    .tts-player { padding: 6px 10px; bottom: 50px; }
+    .tts-player-controls { justify-content: center; }
+    .tts-select { max-width: 120px; }
+    .tts-sentence-text { white-space: normal; max-height: 3em; overflow-y: auto; }
+}
 
 /* --- НОВЫЕ СТИЛИ ДЛЯ СТРАНИЦЫ PHRASES --- */
 #phrases-list-container { display: flex; flex-direction: column; gap: 10px; max-width: 1120px; margin: 0 auto; }
